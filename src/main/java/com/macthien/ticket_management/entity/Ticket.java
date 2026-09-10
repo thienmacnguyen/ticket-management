@@ -47,7 +47,6 @@ public class Ticket {
     @JoinColumn(name = "assignee_id")
     private Employee assignee;
 
-    // Dùng cho Optimistic Locking (chặn lỗi 2 người update cùng lúc)
     @Version
     private Long version;
 

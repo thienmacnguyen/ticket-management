@@ -1,15 +1,14 @@
-package com.macthien.ticket_management.dto;
+package com.macthien.ticket_management.dto.response;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class EmployeeResponse {
+public class EmployeeResponseDTO {
     private Long id;
     private String username;
     private String fullName;

@@ -1,22 +1,17 @@
-package com.macthien.ticket_management.dto;
+package com.macthien.ticket_management.dto.request;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-import java.time.LocalDateTime;
-
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class EmployeeRequest {
+public class EmployeeCreateDTO {
     @NotBlank(message = "Username không được để trống")
     private String username;
     private String fullName;
     @NotBlank(message = "Email không được để trống")
     @Email(message = "Email không đúng định dạng")
     private String email;
-    private boolean active;
-    private LocalDateTime createdAt;
 }

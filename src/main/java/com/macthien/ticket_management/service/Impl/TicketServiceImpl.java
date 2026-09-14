@@ -7,7 +7,6 @@ import com.macthien.ticket_management.dto.request.TicketTransitionDTO;
 import com.macthien.ticket_management.dto.response.TicketCommentResponseDTO;
 import com.macthien.ticket_management.dto.response.TicketDetailResponseDTO;
 import com.macthien.ticket_management.dto.response.TicketResponseDTO;
-import com.macthien.ticket_management.dto.response.TicketStatusHistoryResponseDTO;
 import com.macthien.ticket_management.entity.Employee;
 import com.macthien.ticket_management.entity.Ticket;
 import com.macthien.ticket_management.entity.TicketComment;
@@ -177,6 +176,5 @@ public class TicketServiceImpl implements TicketService {
         history.setChangedAt(LocalDateTime.now());
         historyRepository.save(history);
         return ticketMapper.toResponseDTO(ticket);
-    }
-
+        }
 }

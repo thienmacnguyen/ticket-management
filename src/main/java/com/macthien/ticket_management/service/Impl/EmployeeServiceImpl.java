@@ -20,6 +20,8 @@ public class EmployeeServiceImpl  implements EmployeeService {
     private final EmployeeMapper employeeMapper;
     @Override
     public EmployeeResponseDTO createEmployee(EmployeeCreateDTO dto) {
+        // TODO [MENTOR REVIEW]: existsBy... rồi save không bảo đảm chống trùng khi hai request chạy đồng thời.
+        // UNIQUE constraint vẫn là chốt chặn cuối; cần map DataIntegrityViolationException thành lỗi 409 phù hợp.
         if (employeeRepository.existsByUsername(dto.getUsername())) {
             throw new AppException(ErrorCode.DUPLICATE_USERNAME);
         }

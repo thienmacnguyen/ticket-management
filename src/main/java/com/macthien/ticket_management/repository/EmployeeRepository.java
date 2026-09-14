@@ -10,5 +10,8 @@ import java.util.Optional;
 public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     boolean existsByUsername(String username);
     boolean existsByEmail(String email);
+
+    // TODO [MENTOR REVIEW]: Cách tìm này gộp hai trường hợp "không tồn tại" và "đã inactive" thành Optional.empty().
+    // Service vì vậy luôn trả EMPLOYEE_NOT_FOUND và không bao giờ dùng được EMPLOYEE_INACTIVE. Hãy tách hai bước kiểm tra.
     Optional<Employee> findByIdAndActiveTrue(Long id);
 }

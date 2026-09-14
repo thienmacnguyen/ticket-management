@@ -18,6 +18,9 @@ public interface TicketRepository extends JpaRepository<Ticket, Long>{
     @EntityGraph(attributePaths = {"assignee", "reporter"})
     Optional<Ticket> findById(Long id);
 
+    // TODO [MENTOR REVIEW]: Kết quả search được map sang DTO và truy cập reporter/assignee.
+    // Query này chưa fetch hai quan hệ đó nên có nguy cơ N+1 (hoặc LazyInitializationException khi tắt OSIV).
+    // Hãy chọn @EntityGraph, fetch join phù hợp với pagination, hoặc projection và chứng minh bằng số câu SQL.
     @Query("SELECT t FROM Ticket t WHERE " +
             "(:status IS NULL OR t.status = :status) AND " +
             "(:priority IS NULL OR t.priority = :priority) AND " +

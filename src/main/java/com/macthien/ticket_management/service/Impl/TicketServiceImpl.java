@@ -47,6 +47,8 @@ public class TicketServiceImpl implements TicketService {
                 .orElseThrow(() -> new AppException(ErrorCode.EMPLOYEE_NOT_FOUND));
 
         Ticket ticket = new Ticket();
+        // TODO [MENTOR REVIEW]: LocalDateTime.toString() tạo mã chứa ':', dấu chấm và phần nano giây.
+        // Hãy chọn format ổn định, dễ đọc, đúng độ dài; vẫn phải dựa vào UNIQUE constraint để chống trùng.
         ticket.setTicketCode("TK-" + LocalDateTime.now() + "-" + UUID.randomUUID().toString().substring(0, 6).toUpperCase());
         ticket.setTitle(dto.getTitle());
         ticket.setDescription(dto.getDescription());

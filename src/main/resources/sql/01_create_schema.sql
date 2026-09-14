@@ -6,7 +6,7 @@ CREATE TABLE employees (
     id BIGSERIAL PRIMARY KEY,
     username VARCHAR(50) NOT NULL UNIQUE,
     -- TODO [MENTOR REVIEW]: full_name là bắt buộc nhưng schema vẫn cho phép NULL/chuỗi trắng.
-    full_name VARCHAR(100),
+    full_name VARCHAR(100) NOT NULL,
     email VARCHAR(100) NOT NULL UNIQUE,
     active BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -18,7 +18,7 @@ CREATE TABLE tickets (
     ticket_code VARCHAR(50) NOT NULL UNIQUE,
     title VARCHAR(200) NOT NULL,
     -- TODO [MENTOR REVIEW]: Đồng bộ tính bắt buộc của description giữa đề bài, DTO, Entity và database.
-    description TEXT,
+    description TEXT NOT NULL,
     priority VARCHAR(20) NOT NULL,
     status VARCHAR(20) NOT NULL DEFAULT 'OPEN',
     reporter_id BIGINT NOT NULL,

@@ -13,6 +13,7 @@ public class EmployeeCreateDTO {
 
     // TODO [MENTOR REVIEW]: fullName là dữ liệu bắt buộc theo đề bài nhưng hiện chưa có @NotBlank.
     // Đồng bộ validation này với ràng buộc NOT NULL/CHECK trong schema PostgreSQL.
+    @NotBlank
     private String fullName;
     @NotBlank(message = "Email không được để trống")
     @Email(message = "Email không đúng định dạng")

@@ -4,7 +4,6 @@ import com.macthien.ticket_management.dto.response.*;
 import com.macthien.ticket_management.entity.Ticket;
 import com.macthien.ticket_management.entity.TicketComment;
 import com.macthien.ticket_management.entity.TicketStatusHistory;
-import com.macthien.ticket_management.enums.TicketStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

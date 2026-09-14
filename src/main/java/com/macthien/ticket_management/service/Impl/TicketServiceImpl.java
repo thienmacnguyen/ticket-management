@@ -42,8 +42,11 @@ public class TicketServiceImpl implements TicketService {
     @Override
     public TicketResponseDTO createTicket(TicketCreateDTO dto) {
         Employee reporter = employeeRepository
-                .findByIdAndActiveTrue(dto.getReporterId())
+                .findById(dto.getReporterId())
                 .orElseThrow(() -> new AppException(ErrorCode.EMPLOYEE_NOT_FOUND));
+        if (!reporter.isActive()) {
+            throw new AppException(ErrorCode.EMPLOYEE_INACTIVE);
+        }
 
         Ticket ticket = new Ticket();
         // TODO [MENTOR REVIEW]: LocalDateTime.toString() tạo mã chứa ':', dấu chấm và phần nano giây.
@@ -101,8 +104,11 @@ public class TicketServiceImpl implements TicketService {
         if (ticket.getStatus() == TicketStatus.CLOSED) {
             throw new AppException(ErrorCode.INVALID_STATUS_TRANSITION);
         }
-        Employee assignee = employeeRepository.findByIdAndActiveTrue(dto.getAssigneeId())
+        Employee assignee = employeeRepository.findById(dto.getAssigneeId())
                 .orElseThrow(() -> new AppException(ErrorCode.EMPLOYEE_NOT_FOUND));
+        if(!assignee.isActive()) {
+            throw new AppException(ErrorCode.EMPLOYEE_INACTIVE);
+        }
         ticket.setAssignee(assignee);
         ticket.setUpdatedAt(LocalDateTime.now());
         return ticketMapper.toResponseDTO(ticketRepository.save(ticket));
@@ -117,8 +123,11 @@ public class TicketServiceImpl implements TicketService {
             throw new AppException(ErrorCode.COMMENT_NOT_ALLOWED);
         }
 
-        Employee author = employeeRepository.findByIdAndActiveTrue(dto.getAuthorId())
+        Employee author = employeeRepository.findById(dto.getAuthorId())
                 .orElseThrow(() -> new AppException(ErrorCode.EMPLOYEE_NOT_FOUND));
+        if(!author.isActive()) {
+            throw new AppException(ErrorCode.EMPLOYEE_INACTIVE);
+        }
         TicketComment comment = new TicketComment();
         comment.setTicket(ticket);
         comment.setAuthor(author);
@@ -133,8 +142,11 @@ public class TicketServiceImpl implements TicketService {
         Ticket ticket = ticketRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.TICKET_NOT_FOUND));
 
-        Employee actor = employeeRepository.findByIdAndActiveTrue(dto.getActorId())
+        Employee actor = employeeRepository.findById(dto.getActorId())
                 .orElseThrow(() -> new AppException(ErrorCode.EMPLOYEE_NOT_FOUND));
+        if(!actor.isActive()) {
+            throw new AppException(ErrorCode.EMPLOYEE_INACTIVE);
+        }
         TicketStatus fromStatus = ticket.getStatus();
         TicketStatus toStatus;
         switch (dto.getAction()) {

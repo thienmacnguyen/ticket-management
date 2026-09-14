@@ -18,6 +18,8 @@ public class TicketCreateDTO {
 
     // TODO [MENTOR REVIEW]: description đang chấp nhận null/chuỗi trắng, chưa đúng dữ liệu bắt buộc của bài.
     // Bổ sung validation ở DTO và constraint tương ứng dưới database.
+
+    @NotBlank
     private String description;
 
     @NotNull(message = "Priority không được để trống")

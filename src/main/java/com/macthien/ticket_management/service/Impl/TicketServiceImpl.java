@@ -7,12 +7,14 @@ import com.macthien.ticket_management.dto.request.TicketTransitionDTO;
 import com.macthien.ticket_management.dto.response.TicketCommentResponseDTO;
 import com.macthien.ticket_management.dto.response.TicketDetailResponseDTO;
 import com.macthien.ticket_management.dto.response.TicketResponseDTO;
+import com.macthien.ticket_management.dto.response.TicketStatusHistoryResponseDTO;
 import com.macthien.ticket_management.entity.Employee;
 import com.macthien.ticket_management.entity.Ticket;
 import com.macthien.ticket_management.entity.TicketComment;
 import com.macthien.ticket_management.entity.TicketStatusHistory;
 import com.macthien.ticket_management.enums.ErrorCode;
 import com.macthien.ticket_management.enums.Priority;
+import com.macthien.ticket_management.enums.TicketAction;
 import com.macthien.ticket_management.enums.TicketStatus;
 import com.macthien.ticket_management.exception.AppException;
 import com.macthien.ticket_management.mapper.TicketMapper;
@@ -136,59 +138,125 @@ public class TicketServiceImpl implements TicketService {
         return ticketMapper.toCommentResponseDTO(commentRepository.save(comment));
     }
 
+//    @Override
+//    @Transactional
+//    public TicketResponseDTO transitionStatus(Long id, TicketTransitionDTO dto) {
+//        Ticket ticket = ticketRepository.findById(id)
+//                .orElseThrow(() -> new AppException(ErrorCode.TICKET_NOT_FOUND));
+//
+//        Employee actor = employeeRepository.findById(dto.getActorId())
+//                .orElseThrow(() -> new AppException(ErrorCode.EMPLOYEE_NOT_FOUND));
+//        if(!actor.isActive()) {
+//            throw new AppException(ErrorCode.EMPLOYEE_INACTIVE);
+//        }
+//        TicketStatus fromStatus = ticket.getStatus();
+//        TicketStatus toStatus;
+//        switch (dto.getAction()) {
+//            case START:
+//                if (fromStatus != TicketStatus.OPEN) throw new AppException(ErrorCode.INVALID_STATUS_TRANSITION);
+//                if (ticket.getAssignee() == null) throw new AppException(ErrorCode.ASSIGNEE_REQUIRED);
+//                if (!ticket.getAssignee().getId().equals(actor.getId())) throw new AppException(ErrorCode.UNAUTHORIZED_ACTION);
+//                toStatus = TicketStatus.IN_PROGRESS;
+//                break;
+//            case RESOLVE:
+//                if (fromStatus != TicketStatus.IN_PROGRESS) throw new AppException(ErrorCode.INVALID_STATUS_TRANSITION);
+//                if (dto.getNote() == null || dto.getNote().trim().isEmpty()) throw new AppException(ErrorCode.INVALID_NOTE);
+//                toStatus = TicketStatus.RESOLVED;
+//                ticket.setResolvedAt(LocalDateTime.now());
+//                break;
+//            case CLOSE:
+//                if (fromStatus != TicketStatus.RESOLVED) throw new AppException(ErrorCode.INVALID_STATUS_TRANSITION);
+//                if (!ticket.getReporter().getId().equals(actor.getId())) throw new AppException(ErrorCode.UNAUTHORIZED_ACTION);
+//                toStatus = TicketStatus.CLOSED;
+//                break;
+//            case REOPEN:
+//                if (fromStatus != TicketStatus.RESOLVED) throw new AppException(ErrorCode.INVALID_STATUS_TRANSITION);
+//                if (dto.getNote() == null || dto.getNote().trim().isEmpty()) throw new AppException(ErrorCode.INVALID_NOTE);
+//                toStatus = TicketStatus.IN_PROGRESS;
+//                ticket.setResolvedAt(null);
+//                break;
+//            default:
+//                throw new AppException(ErrorCode.INVALID_STATUS_TRANSITION);
+//
+//        }
+//        ticket.setStatus(toStatus);
+//        ticket.setUpdatedAt(LocalDateTime.now());
+//        ticketRepository.save(ticket);
+//
+//        TicketStatusHistory history = new TicketStatusHistory();
+//        history.setTicket(ticket);
+//        history.setFromStatus(fromStatus);
+//        history.setToStatus(toStatus);
+//        history.setChangedBy(actor);
+//        history.setNote(dto.getNote());
+//        history.setChangedAt(LocalDateTime.now());
+//        historyRepository.save(history);
+//        return ticketMapper.toResponseDTO(ticket);
+//        }
+//}
+
     @Override
     @Transactional
     public TicketResponseDTO transitionStatus(Long id, TicketTransitionDTO dto) {
         Ticket ticket = ticketRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.TICKET_NOT_FOUND));
-
         Employee actor = employeeRepository.findById(dto.getActorId())
-                .orElseThrow(() -> new AppException(ErrorCode.EMPLOYEE_NOT_FOUND));
-        if(!actor.isActive()) {
-            throw new AppException(ErrorCode.EMPLOYEE_INACTIVE);
-        }
+                .orElseThrow(() -> new AppException(ErrorCode.ASSIGNEE_REQUIRED));
+        Employee assignee = ticket.getAssignee();
+        Employee reporter = ticket.getReporter();
         TicketStatus fromStatus = ticket.getStatus();
-        TicketStatus toStatus;
-        switch (dto.getAction()) {
-            case START:
-                if (fromStatus != TicketStatus.OPEN) throw new AppException(ErrorCode.INVALID_STATUS_TRANSITION);
-                if (ticket.getAssignee() == null) throw new AppException(ErrorCode.ASSIGNEE_REQUIRED);
-                if (!ticket.getAssignee().getId().equals(actor.getId())) throw new AppException(ErrorCode.UNAUTHORIZED_ACTION);
-                toStatus = TicketStatus.IN_PROGRESS;
-                break;
-            case RESOLVE:
-                if (fromStatus != TicketStatus.IN_PROGRESS) throw new AppException(ErrorCode.INVALID_STATUS_TRANSITION);
-                if (dto.getNote() == null || dto.getNote().trim().isEmpty()) throw new AppException(ErrorCode.INVALID_NOTE);
-                toStatus = TicketStatus.RESOLVED;
-                ticket.setResolvedAt(LocalDateTime.now());
-                break;
-            case CLOSE:
-                if (fromStatus != TicketStatus.RESOLVED) throw new AppException(ErrorCode.INVALID_STATUS_TRANSITION);
-                if (!ticket.getReporter().getId().equals(actor.getId())) throw new AppException(ErrorCode.UNAUTHORIZED_ACTION);
-                toStatus = TicketStatus.CLOSED;
-                break;
-            case REOPEN:
-                if (fromStatus != TicketStatus.RESOLVED) throw new AppException(ErrorCode.INVALID_STATUS_TRANSITION);
-                if (dto.getNote() == null || dto.getNote().trim().isEmpty()) throw new AppException(ErrorCode.INVALID_NOTE);
-                toStatus = TicketStatus.IN_PROGRESS;
-                ticket.setResolvedAt(null);
-                break;
-            default:
-                throw new AppException(ErrorCode.INVALID_STATUS_TRANSITION);
-
-        }
+        boolean hasAssignee = assignee != null;
+        boolean actorIsAssignee = hasAssignee && assignee.getId().equals(actor.getId());
+        boolean actorIsReporter = reporter.getId().equals(actor.getId());
+        TicketStatus toStatus = determineNextStatus(fromStatus, dto.getAction(), hasAssignee, actorIsAssignee, actorIsReporter, dto.getNote());
         ticket.setStatus(toStatus);
-        ticket.setUpdatedAt(LocalDateTime.now());
         ticketRepository.save(ticket);
-
         TicketStatusHistory history = new TicketStatusHistory();
         history.setTicket(ticket);
         history.setFromStatus(fromStatus);
         history.setToStatus(toStatus);
         history.setChangedBy(actor);
-        history.setNote(dto.getNote());
         history.setChangedAt(LocalDateTime.now());
+        history.setNote(dto.getNote());
         historyRepository.save(history);
         return ticketMapper.toResponseDTO(ticket);
+
+    }
+
+    private TicketStatus determineNextStatus(
+            TicketStatus currentStatus,
+            TicketAction action,
+            boolean hasAssignee,
+            boolean actorIsAssignee,
+            boolean actorIsReporter,
+            String note) {
+        if(currentStatus == TicketStatus.OPEN && action == TicketAction.START) {
+            if (!hasAssignee || !actorIsAssignee) {
+                throw new AppException(ErrorCode.INVALID_STATUS_TRANSITION);
+            }
+            return TicketStatus.IN_PROGRESS;
         }
+
+        if(currentStatus == TicketStatus.IN_PROGRESS && action == TicketAction.RESOLVE) {
+            if (note == null || note.trim().isEmpty()) {
+                throw new AppException(ErrorCode.INVALID_STATUS_TRANSITION);
+            }
+            return TicketStatus.RESOLVED;
+        }
+
+        if(currentStatus == TicketStatus.RESOLVED && action == TicketAction.CLOSE) {
+            if (!actorIsReporter) {
+                throw new AppException(ErrorCode.INVALID_STATUS_TRANSITION);
+            }
+            return TicketStatus.CLOSED;
+        }
+
+        if(currentStatus == TicketStatus.RESOLVED && action == TicketAction.REOPEN) {
+            if (note == null || note.trim().isEmpty()) {
+                throw new AppException(ErrorCode.INVALID_STATUS_TRANSITION);
+            }
+            return  TicketStatus.IN_PROGRESS;
+        }
+        throw new AppException(ErrorCode.INVALID_STATUS_TRANSITION);
+    }
 }

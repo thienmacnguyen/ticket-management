@@ -14,5 +14,6 @@ public class TicketTransitionDTO {
     @NotNull(message = "Actor ID (Người thao tác) không được để trống")
     private Long actorId;
 
+    @NotNull(message = "Note không được để trống")
     private String note;
 }

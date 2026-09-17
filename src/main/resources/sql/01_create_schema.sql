@@ -1,3 +1,7 @@
+DROP TABLE IF EXISTS ticket_status_history;
+DROP TABLE IF EXISTS ticket_comments;
+DROP TABLE IF EXISTS tickets;
+DROP TABLE IF EXISTS employees;
 -- Chạy lệnh tạo DB thủ công trước: CREATE DATABASE ticket_management;
 -- Sau đó connect vào DB ticket_management và chạy script dưới đây:
 

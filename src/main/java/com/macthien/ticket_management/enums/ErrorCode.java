@@ -11,6 +11,7 @@ public enum ErrorCode {
     EMPLOYEE_INACTIVE(HttpStatus.BAD_REQUEST, "Nhân viên đang bị vô hiệu hóa"),
     TICKET_NOT_FOUND(HttpStatus.NOT_FOUND, "Ticket không tồn tại"),
     DUPLICATE_USERNAME(HttpStatus.CONFLICT, "Username đã được sử dụng"),
+    DUPLICATE_EMPLOYEE(HttpStatus.CONFLICT, "Ticket này đã được phân công"),
     INVALID_REQUEST(HttpStatus.BAD_REQUEST, "Dữ liệu yêu cầu không hợp lệ hoặc vượt quá giới hạn"),
     DUPLICATE_EMAIL(HttpStatus.CONFLICT, "Email đã được sử dụng"),
     INVALID_STATUS_TRANSITION(HttpStatus.CONFLICT, "Chuyển trạng thái không hợp lệ"),

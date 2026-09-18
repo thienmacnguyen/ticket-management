@@ -292,4 +292,31 @@ public class TicketServiceImpl implements TicketService {
         }
         throw new AppException(ErrorCode.INVALID_STATUS_TRANSITION);
     }
+
+    public String validateAndNormalizeAssignment(
+            TicketStatus status,
+            Long oldAssigneeId,
+            Long newAssigneeId,
+            boolean newAssigneeActive,
+            String reason
+    ) {
+        if (status == TicketStatus.CLOSED) {
+            throw new AppException(ErrorCode.INVALID_ASSIGNMENT);
+        }
+        if (newAssigneeId == null) {
+            throw new AppException(ErrorCode.EMPLOYEE_NOT_FOUND);
+        }
+        if (!newAssigneeActive) {
+            throw new AppException(ErrorCode.EMPLOYEE_INACTIVE);
+        }
+        if (newAssigneeId == oldAssigneeId) {
+            throw new AppException(ErrorCode.DUPLICATE_EMPLOYEE);
+        }
+        reason = reason.trim();
+        if (oldAssigneeId == null || reason == null || reason.trim().isEmpty()) {
+            return null;
+        } else {
+            return reason;
+        }
+    }
 }

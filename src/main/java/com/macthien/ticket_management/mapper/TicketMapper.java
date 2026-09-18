@@ -2,6 +2,7 @@ package com.macthien.ticket_management.mapper;
 
 import com.macthien.ticket_management.dto.response.*;
 import com.macthien.ticket_management.entity.Ticket;
+import com.macthien.ticket_management.entity.TicketAssignmentHistory;
 import com.macthien.ticket_management.entity.TicketComment;
 import com.macthien.ticket_management.entity.TicketStatusHistory;
 import lombok.RequiredArgsConstructor;
@@ -80,5 +81,32 @@ public class TicketMapper {
         return entities.stream()
                 .map(this::toHistoryResponseDTO)
                 .collect(Collectors.toList());
+    }
+
+    public TicketAssignmentHistoryResponseDTO toAssignmentHistoryResponseDTO(TicketAssignmentHistory entity) {
+        if (entity == null) return null;
+
+        TicketAssignmentHistoryResponseDTO dto = new TicketAssignmentHistoryResponseDTO();
+
+        if (entity.getTicket() != null) {
+            dto.setTicketId(entity.getTicket().getId());
+        }
+
+        if (entity.getOldAssignee() != null) {
+            dto.setOldAssigneeId(entity.getOldAssignee().getId());
+        }
+
+        if (entity.getNewAssignee() != null) {
+            dto.setNewAssigneeId(entity.getNewAssignee().getId());
+        }
+
+        if (entity.getChangedBy() != null) {
+            dto.setChangedBy(entity.getChangedBy().getId());
+        }
+
+        dto.setReason(entity.getReason());
+        dto.setChangedAt(entity.getChangedAt());
+
+        return dto;
     }
 }

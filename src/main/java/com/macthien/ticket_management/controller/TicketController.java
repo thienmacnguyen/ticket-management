@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -35,15 +36,19 @@ public class TicketController {
     public ResponseEntity<Page<TicketResponseDTO>> searchTickets(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) TicketStatus status,
-            @RequestParam(required = false) Priority priority,
             @RequestParam(required = false) Long assigneeId,
-            @PageableDefault(size = 10, sort = "createdAt") Pageable pageable) {
-        return ResponseEntity.ok(ticketService.searchTickets(keyword, status, priority, assigneeId, pageable));
+            @PageableDefault(page = 0, size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+        return ResponseEntity.ok(ticketService.searchTickets(keyword, status, assigneeId, pageable));
     }
 
     @PutMapping("/{id}/assignee")
     public ResponseEntity<TicketResponseDTO> assignTicket(@PathVariable Long id, @Valid @RequestBody TicketAssignDTO dto) {
         return ResponseEntity.ok(ticketService.assignTicket(id, dto));
+    }
+
+    @PutMapping("/{id}/reassign")
+    public ResponseEntity<TicketAssignmentHistoryResponseDTO> reAssignTicket(@PathVariable Long id, @Valid @RequestBody TicketAssignmentDTO dto) {
+        return ResponseEntity.ok(ticketService.reAssignTicket(id, dto));
     }
 
     @PostMapping("/{id}/comments")

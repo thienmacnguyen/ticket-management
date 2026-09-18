@@ -41,6 +41,21 @@ CREATE TABLE tickets (
     CONSTRAINT chk_ticket_status CHECK (status IN ('OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED'))
 );
 
+CREATE TABLE ticket_assignment_history (
+    id BIGSERIAL PRIMARY KEY,
+    ticket_id BIGINT NOT NULL,
+    old_assignee_id BIGINT,
+    new_assignee_id BIGINT NOT NULL,
+    changed_by BIGINT NOT NULL,
+    reason TEXT,
+    changed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_assign_ticket FOREIGN KEY (ticket_id) REFERENCES tickets(id),
+    CONSTRAINT fk_assign_old_emp FOREIGN KEY (old_assignee_id) REFERENCES employees(id),
+    CONSTRAINT fk_assign_new_emp FOREIGN KEY (new_assignee_id) REFERENCES employees(id),
+    CONSTRAINT fk_assign_changer FOREIGN KEY (changed_by) REFERENCES employees(id)
+);
+
 -- 3. Bảng Comments
 CREATE TABLE ticket_comments (
     id BIGSERIAL PRIMARY KEY,
@@ -61,7 +76,7 @@ CREATE TABLE ticket_status_history (
     from_status VARCHAR(20),
     to_status VARCHAR(20) NOT NULL,
     changed_by BIGINT NOT NULL,
-    note TEXT,
+    note TEXT NOT NULL,
     changed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     
     CONSTRAINT fk_history_ticket FOREIGN KEY (ticket_id) REFERENCES tickets(id),

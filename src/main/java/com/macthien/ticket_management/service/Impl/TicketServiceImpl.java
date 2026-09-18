@@ -1,27 +1,15 @@
 package com.macthien.ticket_management.service.Impl;
 
-import com.macthien.ticket_management.dto.request.CommentCreateDTO;
-import com.macthien.ticket_management.dto.request.TicketAssignDTO;
-import com.macthien.ticket_management.dto.request.TicketCreateDTO;
-import com.macthien.ticket_management.dto.request.TicketTransitionDTO;
-import com.macthien.ticket_management.dto.response.TicketCommentResponseDTO;
-import com.macthien.ticket_management.dto.response.TicketDetailResponseDTO;
-import com.macthien.ticket_management.dto.response.TicketResponseDTO;
-import com.macthien.ticket_management.dto.response.TicketStatusHistoryResponseDTO;
-import com.macthien.ticket_management.entity.Employee;
-import com.macthien.ticket_management.entity.Ticket;
-import com.macthien.ticket_management.entity.TicketComment;
-import com.macthien.ticket_management.entity.TicketStatusHistory;
+import com.macthien.ticket_management.dto.request.*;
+import com.macthien.ticket_management.dto.response.*;
+import com.macthien.ticket_management.entity.*;
 import com.macthien.ticket_management.enums.ErrorCode;
 import com.macthien.ticket_management.enums.Priority;
 import com.macthien.ticket_management.enums.TicketAction;
 import com.macthien.ticket_management.enums.TicketStatus;
 import com.macthien.ticket_management.exception.AppException;
 import com.macthien.ticket_management.mapper.TicketMapper;
-import com.macthien.ticket_management.repository.EmployeeRepository;
-import com.macthien.ticket_management.repository.TicketCommentRepository;
-import com.macthien.ticket_management.repository.TicketRepository;
-import com.macthien.ticket_management.repository.TicketStatusHistoryRepository;
+import com.macthien.ticket_management.repository.*;
 import com.macthien.ticket_management.service.TicketService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -41,6 +29,8 @@ public class TicketServiceImpl implements TicketService {
     private final TicketCommentRepository commentRepository;
     private final TicketStatusHistoryRepository historyRepository;
     private final TicketMapper ticketMapper;
+
+    private final TicketAssignmentHistoryRepository ticketAssignmentHistoryRepository;
     @Override
     public TicketResponseDTO createTicket(TicketCreateDTO dto) {
         Employee reporter = employeeRepository
@@ -93,10 +83,14 @@ public class TicketServiceImpl implements TicketService {
     }
 
     @Override
-    public Page<TicketResponseDTO> searchTickets(String keyword, TicketStatus status, Priority priority, Long assigneeId, Pageable pageable) {
-        Page<Ticket> tickets = ticketRepository.searchTickets(keyword, status, priority, assigneeId, pageable);
+    public Page<TicketResponseDTO> searchTickets(String keyword, TicketStatus status, Long assigneeId, Pageable pageable) {
+        if (pageable.getPageSize() > 100) {
+            throw new AppException(ErrorCode.INVALID_REQUEST);
+        }
+        Page<Ticket> tickets = ticketRepository.searchTickets(keyword, status, assigneeId, pageable);
         return tickets.map(ticketMapper::toResponseDTO);
     }
+
 
     @Override
     public TicketResponseDTO assignTicket(Long id, TicketAssignDTO dto) {
@@ -104,7 +98,7 @@ public class TicketServiceImpl implements TicketService {
                 .orElseThrow(() -> new AppException(ErrorCode.TICKET_NOT_FOUND));
 
         if (ticket.getStatus() == TicketStatus.CLOSED) {
-            throw new AppException(ErrorCode.INVALID_STATUS_TRANSITION);
+            throw new AppException(ErrorCode.INVALID_ASSIGNMENT);
         }
         Employee assignee = employeeRepository.findById(dto.getAssigneeId())
                 .orElseThrow(() -> new AppException(ErrorCode.EMPLOYEE_NOT_FOUND));
@@ -114,6 +108,45 @@ public class TicketServiceImpl implements TicketService {
         ticket.setAssignee(assignee);
         ticket.setUpdatedAt(LocalDateTime.now());
         return ticketMapper.toResponseDTO(ticketRepository.save(ticket));
+    }
+
+    @Transactional
+    @Override
+    public TicketAssignmentHistoryResponseDTO reAssignTicket(Long id, TicketAssignmentDTO dto) {
+        Ticket ticket = ticketRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.TICKET_NOT_FOUND));
+        Employee actor = employeeRepository.findById(dto.getActorId())
+                .orElseThrow(() -> new AppException(ErrorCode.EMPLOYEE_NOT_FOUND));
+        Employee reAssignee = employeeRepository.findById(dto.getReAssignId())
+                .orElseThrow(() -> new AppException(ErrorCode.EMPLOYEE_NOT_FOUND));
+        Employee oldAssignee = ticket.getAssignee();
+        String reason = dto.getReason() != null ? dto.getReason().trim() : "";
+        if(!reAssignee.isActive()) {
+            throw new AppException(ErrorCode.EMPLOYEE_INACTIVE);
+        }
+        if(ticket.getStatus() == TicketStatus.CLOSED) {
+            throw new AppException(ErrorCode.INVALID_ASSIGNMENT);
+        }
+        if (oldAssignee != null && oldAssignee.getId().equals(dto.getReAssignId())) {
+            throw new AppException(ErrorCode.INVALID_ASSIGNMENT);
+        }
+        if (oldAssignee != null && reason == null || reason.trim().isEmpty()) {
+            throw new AppException(ErrorCode.INVALID_REASON);
+        }
+
+        ticket.setAssignee(reAssignee);
+        ticket.setUpdatedAt(LocalDateTime.now());
+        ticketRepository.save(ticket);
+
+        TicketAssignmentHistory history = new TicketAssignmentHistory();
+        history.setTicket(ticket);
+        history.setNewAssignee(reAssignee);
+        history.setOldAssignee(oldAssignee);
+        history.setChangedBy(actor);
+        history.setChangedAt(LocalDateTime.now());
+        history.setReason(reason);
+        ticketAssignmentHistoryRepository.save(history);
+        return ticketMapper.toAssignmentHistoryResponseDTO(history);
     }
 
     @Override

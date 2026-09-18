@@ -10,10 +10,10 @@ INSERT INTO tickets (ticket_code, title, description, priority, status, reporter
 ('TK-004', 'Lỗi server', 'Server down', 'URGENT', 'RESOLVED', 2, 1, NOW() - INTERVAL '15 days', NOW() - INTERVAL '12 days'),
 ('TK-005', 'Màn hình xanh', 'BSOD liên tục', 'URGENT', 'CLOSED', 1, 2, NOW(), NULL);
 
-INSERT INTO ticket_status_history (ticket_id, from_status, to_status, changed_by, changed_at) VALUES 
-(4, 'OPEN', 'IN_PROGRESS', 1, NOW() - INTERVAL '14 days'),
-(4, 'IN_PROGRESS', 'RESOLVED', 1, NOW() - INTERVAL '12 days'),
-(1, 'OPEN', 'IN_PROGRESS', 2, NOW()); -- Cố tình tạo dữ liệu lỗi lệch với status hiện tại (OPEN)
+INSERT INTO ticket_status_history (ticket_id, from_status, to_status, changed_by, note, changed_at) VALUES 
+(4, 'OPEN', 'IN_PROGRESS', 1, 'Sập nguồn', NOW() - INTERVAL '14 days'),
+(4, 'IN_PROGRESS', 'RESOLVED', 1, 'lỗi', NOW() - INTERVAL '12 days'),
+(1, 'OPEN', 'IN_PROGRESS', 2, 'lỗi', NOW()); -- Cố tình tạo dữ liệu lỗi lệch với status hiện tại (OPEN)
 
 INSERT INTO ticket_comments (ticket_id, author_id, content, created_at)
 SELECT 1, 1, 'Comment ' || gs, NOW() - INTERVAL '5 days' FROM generate_series(1, 6) AS gs;

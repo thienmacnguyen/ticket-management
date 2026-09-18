@@ -37,7 +37,7 @@ public class TicketController {
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) TicketStatus status,
             @RequestParam(required = false) Long assigneeId,
-            @PageableDefault(page = 0, size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+            @PageableDefault(page = 0, size = 10, sort = {"createdAt", "id"}, direction = Sort.Direction.DESC) Pageable pageable) {
         return ResponseEntity.ok(ticketService.searchTickets(keyword, status, assigneeId, pageable));
     }
 

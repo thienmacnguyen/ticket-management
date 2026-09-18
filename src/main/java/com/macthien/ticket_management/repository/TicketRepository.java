@@ -24,16 +24,14 @@ public interface TicketRepository extends JpaRepository<Ticket, Long>{
     @EntityGraph(attributePaths = {"assignee", "reporter"})
     @Query("SELECT t FROM Ticket t WHERE " +
             "(:status IS NULL OR t.status = :status) AND " +
-            "(:priority IS NULL OR t.priority = :priority) AND " +
             "(:assigneeId IS NULL OR t.assignee.id = :assigneeId) AND " +
-            "(:keyword IS NULL OR :keyword = '' OR " +
+            "(:keyword IS NULL OR TRIM(:keyword) = '' OR " +
             "LOWER(t.ticketCode) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
             "LOWER(t.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
             "LOWER(t.description) LIKE LOWER(CONCAT('%', :keyword, '%')))")
     Page<Ticket> searchTickets(
             @Param("keyword") String keyword,
             @Param("status") TicketStatus status,
-            @Param("priority") Priority priority,
             @Param("assigneeId") Long assigneeId,
             Pageable pageable
     );

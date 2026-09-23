@@ -34,4 +34,10 @@ public class Employee {
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    @Column(name = "password_hash", nullable = false)
+    private String passwordHash;
+
+    @Column(nullable = false, length = 20)
+    private String role = "USER";
 }

@@ -14,4 +14,5 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     // TODO [MENTOR REVIEW]: Cách tìm này gộp hai trường hợp "không tồn tại" và "đã inactive" thành Optional.empty().
     // Service vì vậy luôn trả EMPLOYEE_NOT_FOUND và không bao giờ dùng được EMPLOYEE_INACTIVE. Hãy tách hai bước kiểm tra.
     Optional<Employee> findById(Long id);
+    Optional<Employee> findByUsername(String username);
 }

@@ -4,5 +4,5 @@ import com.macthien.ticket_management.dto.request.EmployeeCreateDTO;
 import com.macthien.ticket_management.dto.response.EmployeeResponseDTO;
 
 public interface EmployeeService {
-    public EmployeeResponseDTO createEmployee(EmployeeCreateDTO dto);
+    EmployeeResponseDTO createEmployee(EmployeeCreateDTO dto);
 }

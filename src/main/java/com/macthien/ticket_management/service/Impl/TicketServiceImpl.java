@@ -309,14 +309,22 @@ public class TicketServiceImpl implements TicketService {
         if (!newAssigneeActive) {
             throw new AppException(ErrorCode.EMPLOYEE_INACTIVE);
         }
-        if (newAssigneeId == oldAssigneeId) {
+        if (newAssigneeId.equals(oldAssigneeId)) {
             throw new AppException(ErrorCode.DUPLICATE_EMPLOYEE);
         }
-        reason = reason.trim();
-        if (oldAssigneeId == null || reason == null || reason.trim().isEmpty()) {
-            return null;
-        } else {
-            return reason;
+        String newReason = reason == null ? null : reason.trim();
+        if (oldAssigneeId == null) {
+            if (newReason != null && newReason.isEmpty()) {
+                return null;
+            }
+            return newReason;
         }
+        if (oldAssigneeId != null) {
+            if (newReason == null && newReason.isEmpty()) {
+                throw new AppException(ErrorCode.INVALID_REASON);
+            }
+            return newReason;
+        }
+        return newReason;
     }
 }

@@ -11,11 +11,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface TicketService {
-    public TicketResponseDTO createTicket(TicketCreateDTO dto);
-    public TicketDetailResponseDTO getTicketDetail(Long id);
-    public Page<TicketResponseDTO> searchTickets(String keyword, TicketStatus status, Long assigneeId, Pageable pageable);
-    public TicketResponseDTO assignTicket(Long id, TicketAssignDTO dto);
-    public TicketAssignmentHistoryResponseDTO reAssignTicket(Long id, TicketAssignmentDTO dto);
-    public TicketCommentResponseDTO addComment(Long id, CommentCreateDTO dto);
-    public TicketResponseDTO transitionStatus(Long id, TicketTransitionDTO dto);
+    TicketResponseDTO createTicket(TicketCreateDTO dto);
+    TicketDetailResponseDTO getTicketDetail(Long id);
+    Page<TicketResponseDTO> searchTickets(String keyword, TicketStatus status, Long assigneeId, Pageable pageable);
+    TicketResponseDTO assignTicket(Long id, TicketAssignDTO dto);
+    TicketAssignmentHistoryResponseDTO reAssignTicket(Long id, TicketAssignmentDTO dto);
+    TicketCommentResponseDTO addComment(Long id, CommentCreateDTO dto);
+    TicketResponseDTO transitionStatus(Long id, TicketTransitionDTO dto);
 }

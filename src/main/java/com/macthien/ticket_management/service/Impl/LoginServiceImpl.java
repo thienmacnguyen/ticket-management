@@ -1,14 +1,16 @@
 package com.macthien.ticket_management.service.Impl;
 
 import com.macthien.ticket_management.dto.request.LoginDTO;
+import com.macthien.ticket_management.dto.response.CurrentUserResponseDTO;
 import com.macthien.ticket_management.dto.response.LoginResponseDTO;
 import com.macthien.ticket_management.entity.Employee;
 import com.macthien.ticket_management.enums.ErrorCode;
 import com.macthien.ticket_management.exception.AppException;
 import com.macthien.ticket_management.repository.EmployeeRepository;
 import com.macthien.ticket_management.security.JwtTokenProvider;
-import com.macthien.ticket_management.service.AuthService;
+import com.macthien.ticket_management.service.LoginService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -16,7 +18,7 @@ import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
-public class AuthServiceImpl implements AuthService {
+public class LoginServiceImpl implements LoginService {
 
     private final EmployeeRepository employeeRepository;
     private final JwtTokenProvider tokenProvider;
@@ -40,5 +42,21 @@ public class AuthServiceImpl implements AuthService {
         response.setAccessToken(token);
         response.setExpiresAt(LocalDateTime.now().plusDays(1).withNano(0));
         return response;
+    }
+
+    @Override
+    public CurrentUserResponseDTO getCurrentUser() {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (!(principal instanceof Long)) {
+            throw new AppException(ErrorCode.UNAUTHENTICATED);
+        }
+        Long currentEmployeeId = (Long) principal;
+        Employee employee = employeeRepository.findById(currentEmployeeId)
+                .orElseThrow(() -> new AppException(ErrorCode.EMPLOYEE_NOT_FOUND));
+        return new CurrentUserResponseDTO(
+                employee.getId(),
+                employee.getUsername(),
+                employee.getFullName()
+        );
     }
 }

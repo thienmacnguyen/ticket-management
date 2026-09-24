@@ -4,7 +4,6 @@ import com.macthien.ticket_management.dto.request.*;
 import com.macthien.ticket_management.dto.response.*;
 import com.macthien.ticket_management.entity.*;
 import com.macthien.ticket_management.enums.ErrorCode;
-import com.macthien.ticket_management.enums.Priority;
 import com.macthien.ticket_management.enums.TicketAction;
 import com.macthien.ticket_management.enums.TicketStatus;
 import com.macthien.ticket_management.exception.AppException;
@@ -14,6 +13,7 @@ import com.macthien.ticket_management.service.TicketService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -113,11 +113,18 @@ public class TicketServiceImpl implements TicketService {
     @Transactional
     @Override
     public TicketAssignmentHistoryResponseDTO reAssignTicket(Long id, TicketAssignmentDTO dto) {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (!(principal instanceof Long)){
+            throw new AppException(ErrorCode.UNAUTHENTICATED);
+        }
+        Long actorIdFromToken = (Long) principal;
+
+        validateActor(dto.getActorId(), actorIdFromToken);
         Ticket ticket = ticketRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.TICKET_NOT_FOUND));
         Employee actor = employeeRepository.findById(dto.getActorId())
                 .orElseThrow(() -> new AppException(ErrorCode.EMPLOYEE_NOT_FOUND));
-        Employee reAssignee = employeeRepository.findById(dto.getReAssignId())
+        Employee reAssignee = employeeRepository.findById(dto.getNewAssigneeId())
                 .orElseThrow(() -> new AppException(ErrorCode.EMPLOYEE_NOT_FOUND));
         Employee oldAssignee = ticket.getAssignee();
         String reason = dto.getReason() != null ? dto.getReason().trim() : "";
@@ -127,7 +134,7 @@ public class TicketServiceImpl implements TicketService {
         if(ticket.getStatus() == TicketStatus.CLOSED) {
             throw new AppException(ErrorCode.INVALID_ASSIGNMENT);
         }
-        if (oldAssignee != null && oldAssignee.getId().equals(dto.getReAssignId())) {
+        if (oldAssignee != null && oldAssignee.getId().equals(dto.getNewAssigneeId())) {
             throw new AppException(ErrorCode.INVALID_ASSIGNMENT);
         }
         if (oldAssignee != null && reason == null || reason.trim().isEmpty()) {
@@ -293,38 +300,48 @@ public class TicketServiceImpl implements TicketService {
         throw new AppException(ErrorCode.INVALID_STATUS_TRANSITION);
     }
 
-    public String validateAndNormalizeAssignment(
-            TicketStatus status,
-            Long oldAssigneeId,
-            Long newAssigneeId,
-            boolean newAssigneeActive,
-            String reason
-    ) {
-        if (status == TicketStatus.CLOSED) {
-            throw new AppException(ErrorCode.INVALID_ASSIGNMENT);
+//    public String validateAndNormalizeAssignment(
+//            TicketStatus status,
+//            Long oldAssigneeId,
+//            Long newAssigneeId,
+//            boolean newAssigneeActive,
+//            String reason
+//    ) {
+//        if (status == TicketStatus.CLOSED) {
+//            throw new AppException(ErrorCode.INVALID_ASSIGNMENT);
+//        }
+//        if (newAssigneeId == null) {
+//            throw new AppException(ErrorCode.EMPLOYEE_NOT_FOUND);
+//        }
+//        if (!newAssigneeActive) {
+//            throw new AppException(ErrorCode.EMPLOYEE_INACTIVE);
+//        }
+//        if (newAssigneeId.equals(oldAssigneeId)) {
+//            throw new AppException(ErrorCode.DUPLICATE_EMPLOYEE);
+//        }
+//        String newReason = reason == null ? null : reason.trim();
+//        if (oldAssigneeId == null) {
+//            if (newReason != null && newReason.isEmpty()) {
+//                return null;
+//            }
+//            return newReason;
+//        }
+//        if (oldAssigneeId != null) {
+//            if (newReason == null && newReason.isEmpty()) {
+//                throw new AppException(ErrorCode.INVALID_REASON);
+//            }
+//            return newReason;
+//        }
+//        return newReason;
+//    }
+
+    public void validateActor(Long actorIdFromRequest, Long actorIdFromToken) {
+        if (actorIdFromRequest == null || actorIdFromToken == null) {
+            throw new IllegalArgumentException("ID không được để trống");
         }
-        if (newAssigneeId == null) {
-            throw new AppException(ErrorCode.EMPLOYEE_NOT_FOUND);
+
+        if (!actorIdFromRequest.equals(actorIdFromToken)) {
+            throw new AppException(ErrorCode.FORBIDDEN);
         }
-        if (!newAssigneeActive) {
-            throw new AppException(ErrorCode.EMPLOYEE_INACTIVE);
-        }
-        if (newAssigneeId.equals(oldAssigneeId)) {
-            throw new AppException(ErrorCode.DUPLICATE_EMPLOYEE);
-        }
-        String newReason = reason == null ? null : reason.trim();
-        if (oldAssigneeId == null) {
-            if (newReason != null && newReason.isEmpty()) {
-                return null;
-            }
-            return newReason;
-        }
-        if (oldAssigneeId != null) {
-            if (newReason == null && newReason.isEmpty()) {
-                throw new AppException(ErrorCode.INVALID_REASON);
-            }
-            return newReason;
-        }
-        return newReason;
     }
 }

@@ -23,8 +23,9 @@ public enum ErrorCode {
     INVALID_NOTE(HttpStatus.BAD_REQUEST, "Ghi chú không được để trống cho thao tác này"),
     INVALID_ASSIGNMENT(HttpStatus.BAD_REQUEST, "Không thể phân công cho Ticket đã đóng"),
     INVALID_CREDENTIALS(HttpStatus.UNAUTHORIZED, "Sai tên đăng nhập hoặc mật khẩu"),
+    FORBIDDEN(HttpStatus.FORBIDDEN, "Cố tình giả mạo người khác"),
     UNAUTHENTICATED(HttpStatus.UNAUTHORIZED, "Bạn chưa đăng nhập hoặc token không hợp lệ"),
-    FORBIDDEN_ACTION(HttpStatus.FORBIDDEN, "Bạn không có quyền thực hiện thao tác này đối với tài khoản khác");
+    FORBIDDEN_ACTION(HttpStatus.FORBIDDEN, "Bạn không có quyền thực hiện thao tác này");
 
     private final HttpStatus httpStatus;
     private final String message;

@@ -11,8 +11,8 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class TicketAssignmentDTO {
-    @NotNull (message = "Reassign ID không được để trống")
-    private Long reAssignId;
+    @NotNull (message = "New assign ID không được để trống")
+    private Long newAssigneeId;
 
     @NotNull(message = "Actor ID (Người thao tác) không được để trống")
     private Long actorId;

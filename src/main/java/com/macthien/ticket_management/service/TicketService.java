@@ -18,4 +18,5 @@ public interface TicketService {
     TicketAssignmentHistoryResponseDTO reAssignTicket(Long id, TicketAssignmentDTO dto);
     TicketCommentResponseDTO addComment(Long id, CommentCreateDTO dto);
     TicketResponseDTO transitionStatus(Long id, TicketTransitionDTO dto);
+    void validateActor(Long actorIdFromRequest, Long actorIdFromToken);
 }

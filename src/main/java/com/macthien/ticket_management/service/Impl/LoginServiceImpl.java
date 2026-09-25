@@ -33,7 +33,7 @@ public class LoginServiceImpl implements LoginService {
             throw new AppException(ErrorCode.EMPLOYEE_INACTIVE);
         }
 
-        if(passwordEncoder.matches(dto.getPassword(), employee.getPasswordHash())) {
+        if(!passwordEncoder.matches(dto.getPassword(), employee.getPasswordHash())) {
             throw new AppException(ErrorCode.INVALID_CREDENTIALS);
         }
 

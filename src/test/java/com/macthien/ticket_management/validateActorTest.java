@@ -2,7 +2,7 @@ package com.macthien.ticket_management;
 
 import com.macthien.ticket_management.enums.ErrorCode;
 import com.macthien.ticket_management.exception.AppException;
-import com.macthien.ticket_management.service.TicketService;
+import com.macthien.ticket_management.service.Impl.TicketServiceImpl;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class validateActorTest {
 
     @InjectMocks
-    private TicketService ticketService;
+    private TicketServiceImpl ticketService;
 
     @Test
     @DisplayName("Test 1: actorIdFromRequest bị null -> Ném IllegalArgumentException")
@@ -24,7 +24,7 @@ class validateActorTest {
         Long tokenActorId = 1L;
 
         assertThrows(IllegalArgumentException.class, () -> {
-            ticketService.validateActor(requestActorId, tokenActorId);
+            ticketService.validateActor(requestActorId, tokenActorId, false);
         });
     }
 
@@ -35,7 +35,7 @@ class validateActorTest {
         Long tokenActorId = null;
 
         assertThrows(IllegalArgumentException.class, () -> {
-            ticketService.validateActor(requestActorId, tokenActorId);
+            ticketService.validateActor(requestActorId, tokenActorId, false);
         });
     }
 
@@ -46,7 +46,7 @@ class validateActorTest {
         Long tokenActorId = 1L;    // Token thực tế là ID = 1
 
         AppException exception = assertThrows(AppException.class, () -> {
-            ticketService.validateActor(requestActorId, tokenActorId);
+            ticketService.validateActor(requestActorId, tokenActorId, false);
         });
 
         assertEquals(ErrorCode.FORBIDDEN, exception.getErrorCode());
@@ -60,7 +60,7 @@ class validateActorTest {
         Long tokenActorId = 1000L;
 
         assertDoesNotThrow(() -> {
-            ticketService.validateActor(requestActorId, tokenActorId);
+            ticketService.validateActor(requestActorId, tokenActorId, false);
         });
     }
 }

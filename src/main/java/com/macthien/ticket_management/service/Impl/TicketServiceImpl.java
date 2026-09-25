@@ -119,7 +119,12 @@ public class TicketServiceImpl implements TicketService {
         }
         Long actorIdFromToken = (Long) principal;
 
-        validateActor(dto.getActorId(), actorIdFromToken);
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+
+        boolean isAdmin = auth.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
+        validateActor(dto.getActorId(), actorIdFromToken, isAdmin);
         Ticket ticket = ticketRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.TICKET_NOT_FOUND));
         Employee actor = employeeRepository.findById(dto.getActorId())
@@ -335,9 +340,13 @@ public class TicketServiceImpl implements TicketService {
 //        return newReason;
 //    }
 
-    public void validateActor(Long actorIdFromRequest, Long actorIdFromToken) {
+    public void validateActor(Long actorIdFromRequest, Long actorIdFromToken, boolean isAdmin) {
         if (actorIdFromRequest == null || actorIdFromToken == null) {
             throw new IllegalArgumentException("ID không được để trống");
+        }
+
+        if (isAdmin) {
+            return;
         }
 
         if (!actorIdFromRequest.equals(actorIdFromToken)) {

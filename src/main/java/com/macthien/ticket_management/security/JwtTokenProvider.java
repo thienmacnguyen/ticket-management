@@ -23,13 +23,14 @@ public class JwtTokenProvider {
         return Keys.hmacShaKeyFor(jwtSecret.getBytes());
     }
 
-    public String generateToken(Long employeeId, String username) {
+    public String generateToken(Long employeeId, String username, String role) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + jwtExpirationInMs);
 
         return Jwts.builder()
                 .setSubject(username)
                 .claim("id", employeeId)
+                .claim("role", role)
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
                 .signWith(
@@ -58,5 +59,9 @@ public class JwtTokenProvider {
 
     public Long getEmployeeIdFromToken(String token) {
         return getClaimsFromToken(token).get("id", Long.class);
+    }
+
+    public String getRoleFromToken(String token) {
+        return getClaimsFromToken(token).get("role", String.class);
     }
 }

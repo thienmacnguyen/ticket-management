@@ -37,7 +37,7 @@ public class LoginServiceImpl implements LoginService {
             throw new AppException(ErrorCode.INVALID_CREDENTIALS);
         }
 
-        String token = tokenProvider.generateToken(employee.getId(), employee.getUsername());
+        String token = tokenProvider.generateToken(employee.getId(), employee.getUsername(), employee.getRole());
         LoginResponseDTO response = new LoginResponseDTO();
         response.setAccessToken(token);
         response.setExpiresAt(LocalDateTime.now().plusDays(1).withNano(0));
